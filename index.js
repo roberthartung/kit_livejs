@@ -79,6 +79,9 @@ removeAllListeners
 listeners
 */
 
+var path = require('path');
+module.dir = path.dirname(module.filename) + path.sep;
+
 function LiveJS(server)
 {
 	this.groups = {};
@@ -129,11 +132,7 @@ function LiveJS(server)
 	Group.prototype.updateShared = function()
 	{
 		var msg = this.getShareMessage();
-	
-		for(var c=0;c<this.clients.length;c++)
-		{
-			this.clients[c].send(msg);
-		}
+		this.send(msg);
 	}
 	
 	Group.prototype.addClient = function(client)
@@ -143,15 +142,28 @@ function LiveJS(server)
 		//this.updateShared();
 	}
 	
+	Group.prototype.send = function(msg)
+	{
+		for(var c=0;c<this.clients.length;c++)
+		{
+			this.clients[c].send(msg);
+		}
+	}
+	
+	Group.prototype.trigger = function(e,d)
+	{
+		var json = JSON.stringify({type:'event',name:e,data:d});
+		this.send(json);
+	}
+	
 	function onRequest(req, res)
 	{
-		console.log('server:', typeof server);
 		if(req.method == 'GET')
 		{
 			if(req.url.toLowerCase() == '/livejs/live.js')
 			{
 				res.writeHead(200, {'Content-Type': 'text/javascript'});
-				fs.readFile('_livejs.js', 'utf8', function(err, data)
+				fs.readFile(module.dir + 'client/livejs.js', 'utf8', function(err, data)
 				{
 					if(!err)
 					{
@@ -194,15 +206,11 @@ function LiveJS(server)
 			this.byteStream = '';
 			for(b=0;b<bytes.length;b++)
 			{
-				//console.log(bytes[b].toString(2));
 				var chr = String.fromCharCode(bytes[b]);
-				//console.log(bytes[b].toString(16));
 				this.byteStream += chr;
 			}
 			
 			this.byteStream += arg;
-			
-			//console.log(str);
 		}
 	}
 
@@ -228,7 +236,7 @@ function LiveJS(server)
 				//console.log('bytePos:', bytePos, 'bitOffset:', bitPosition, 'bit:', bit);
 				// MSB is read first
 				val |= bit << (num - b - 1);
-				val = val >>> 0;
+				val = val >>> 0; // fix for 32bit number
 				bitOffset++;
 			}
 			return val;
@@ -407,6 +415,18 @@ function LiveJS(server)
 	server.on('request', onRequest);
 	server.on('upgrade', onUpgrade);
 	
+	var events = {};
+	
+	this.on = function(e,f)
+	{
+		events[e] = f;
+	}
+	
+	this.trigger = function(e,d)
+	{
+		this.groups.everyone.trigger(e,d);
+	}
+	
 	return this;
 }
 
@@ -437,6 +457,11 @@ LiveJS.prototype.register = function(name, val)
 	this.groups[group].share(name, val);
 	
 	return true;
+}
+
+LiveJS.prototype.broadcast = function(msg)
+{
+	return this.groups.everyone.send(msg);	
 }
 
 module.exports = {
