@@ -10,16 +10,15 @@
 	<body>
 		<script>
 			// listen for event progress
-			live.on('progress', function()
+			live.on('hello', function()
 			{
-				
+				console.log('HELLO!');
 			});
 			
 			// trigger progress event to server
-			
 			live.ready(function()
 			{
-				this.trigger('progress', {job_id:5});
+				this.trigger('status', {from:'client'});
 			});
 			
 		</script>
