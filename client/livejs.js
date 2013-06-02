@@ -9,6 +9,8 @@ var live = new function()
 	
 	ws.onopen = function()
 	{
+		console.log('open');
+		ws.send(JSON.stringify('Hi'));
 		isReady = true;
 		for(var i=0;i<waitReady.length;i++)
 		{
@@ -16,9 +18,9 @@ var live = new function()
 		}
 	}
 	
-	ws.onerror = function()
+	ws.onerror = function(e)
 	{
-		console.log('error');
+		console.log('error', e.data);
 	}
 	
 	ws.onclose = function()
@@ -35,10 +37,10 @@ var live = new function()
 		switch(json.type)
 		{
 			case 'event' :
-				console.log('event.name:', json.name);
+				//console.log('event.name:', json.name);
 				if(typeof events[json.name] == 'function')
 				{
-					events[json.name].call(live, json.data);
+					events[json.name].apply(live, json.arguments);
 				}
 			break;
 		}
