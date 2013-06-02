@@ -30,7 +30,7 @@ var live = new function()
 	{
 		var json = JSON.parse(message.data);
 		
-		console.log('>>>', json);
+		console.log('>> in >>', json);
 		
 		switch(json.type)
 		{
@@ -46,15 +46,35 @@ var live = new function()
 	
 	var events = {};
 	
+	var groups = [];
+	
 	this.on = function(e,f)
 	{
 		events[e] = f;
 	}
 	
-	this.trigger = function(e,d)
+	function send(o)
 	{
-		var json = JSON.stringify({type:'event',name:e,data:d});
-		ws.send(json);
+		ws.send(JSON.stringify(o));
+	}
+	
+	/**
+	 * Subscribe to a group
+	 */
+	
+	this.subscribe = function(g)
+	{
+		send({type:'subscribe',group:g});
+	}
+	
+	this.getGroups = function()
+	{
+		return groups;
+	}
+	
+	this.trigger = this.emit = function(e,d)
+	{
+		send({type:'event',name:e,data:d});
 	}
 	
 	this.ready = function(cb)

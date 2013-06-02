@@ -2,15 +2,28 @@ var http = require('http');
 
 var live = require('livejs')(http.createServer().listen(1337));
 
-live.on('status', function()
+var groups = {};
+
+live.on('group', function(live, group)
 {
-	console.log('received event "status"', arguments);
+	groups[group] = group;
+	console.log('[GROUPS.'+group.getName()+'] Created');
 });
 
 live.on('connect', function()
 {
 	this.emit('hello', {from:'server'});
 });
+
+// Client Events
+live.on('status', function(client)
+{
+	//console.log('client:', client);
+	console.log('received event "status" from client, args:', arguments);
+	client.send('Status received');
+});
+
+console.log('Running...');
 
 /*
 var live2 = require('livejs')(http.createServer().listen(1338));

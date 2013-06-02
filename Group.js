@@ -19,16 +19,55 @@
 var events = require("events"),
 	util = require("util");
 
-function Group(name)
+function Group(name, canSubscribe)
 {
 	events.EventEmitter.call(this);
-	var name = name;
 	var group = this;
 	var clients = [];
+	
+	this.getName = function()
+	{
+		return name;
+	}
 	
 	this.addClient = function(client)
 	{
 		clients.push(client);
+		client.emit('group', name);
+		client.once('disconnect', function()
+		{
+			for(var c=0;c<clients.length;c++)
+			{
+				if(clients[c] === this)
+				{
+					clients.splice(c, 1);
+					break;
+				}
+			}
+		});
+	}
+	
+	function put(data)
+	{
+		for(var c=0;c<clients.length;c++)
+		{
+			clients[c].put(data);
+		}
+	}
+	
+	this.send = function(msg)
+	{
+		put(JSON.stringify(msg));
+	}
+	
+	this.subscribe = function(client)
+	{
+		if(canSubscribe)
+		{
+			group.addClient(client);
+		}
+		
+		return false;
 	}
 	
 	var emit = this.emit;
@@ -38,7 +77,9 @@ function Group(name)
 		{
 			console.log('Group.emit('+arguments[0]+')');
 			for(var c=0;c<clients.length;c++)
+			{
 				clients[c].emit.apply(clients[c], arguments);
+			}
 			return true;
 		}
 		else

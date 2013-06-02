@@ -12,23 +12,35 @@ module.exports = function(httpServer)
 	{
 		events.EventEmitter.call(this);
 		
-		// console.log(this._events);
-		
 		var emit = this.emit;
 		var live = this;
+		
+		var _reserved_events = ['group'];
 		
 		// Emit directly on LiveJS object -> send event to everyone group
 		this.emit = function()
 		{
+			//console.log('live.emit('+arguments[0]+')');
 			//console.log('emit', arguments[0],typeof live._events[arguments[0]], live._events);
-			if(typeof live._events[arguments[0]] == 'undefined')
+			if(typeof live._events[arguments[0]] == 'undefined' && _reserved_events.indexOf(arguments[0]) == -1)
 			{
+				/*
+				function Event()
+				{
+					
+				}
+				new Event();
+				*/
 				console.log('LiveJS.emit('+arguments[0]+')');
 				return groups.everyone.emit.apply(live, arguments);
 			}
 			else
 			{
-				return emit.apply(live, arguments);
+				var args = []; for(var a=1;a<arguments.length;a++) args[a-1] = arguments[a];
+				args.unshift(this);
+				args.unshift(arguments[0]);
+				console.log('args:', args);
+				return emit.apply(live, args);
 			}
 		}
 		
@@ -39,14 +51,31 @@ module.exports = function(httpServer)
 		
 		// setup
 		var websocket = require('websocket')(httpServer);
-		var everyone = new Group('everyone');
-		groups['everyone'] = everyone;
+		
+		function createGroup(g, subscribable)
+		{
+			var group = new Group(g, subscribable ? true : false);
+			groups[g] = group;
+			live.emit('group', group);
+			return group;
+		}
+		
+		createGroup('everyone');
 		
 		websocket.on('connect', function(connection)
 		{
 			var client = new Client(connection, live);
 			groups.everyone.addClient(client);
 			live.emit('connect', client);
+			client.on('subscribe', function(group)
+			{
+				if(typeof groups[group] == 'undefined')
+				{
+					createGroup(group, true);
+				}
+				
+				groups[group].subscribe(client);
+			});
 		});
 		
 		function onRequest(req, res)

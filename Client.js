@@ -7,11 +7,12 @@ function Client(connection, live)
 	var client = this;
 	this.send = function(m)
 	{
-		put(JSON.stringify({type:'message',message:m}));
+		client.put(JSON.stringify({type:'message',message:m}));
 	}
-	this.send('Welcome');
 	
-	function put(str)
+	//this.send('Welcome');
+	
+	this.put = function(str)
 	{
 		connection.send(str);
 	}
@@ -22,7 +23,11 @@ function Client(connection, live)
 		switch(json.type)
 		{
 			case 'event' :
-				live.emit.call(connection, json.name, json.data);
+				live.emit.call(client, json.name, json.data);
+			break;
+			case 'subscribe' :
+				console.log('client.subscribe('+json.group+')');
+				client.emit('subscribe', json.group);
 			break;
 		}
 	});
@@ -43,7 +48,7 @@ function Client(connection, live)
 			{
 				args[i] = arguments[i];
 			}
-			put(JSON.stringify({type:'event',name:arguments[0],arguments:args.splice(1)}));
+			client.put(JSON.stringify({type:'event',name:arguments[0],arguments:args.splice(1)}));
 			return true;
 		}
 		else
