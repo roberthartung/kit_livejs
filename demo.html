@@ -9,18 +9,27 @@
 	
 	<body>
 		<script>
-			// listen for event progress
-			live.on('hello', function()
+			if(typeof live != 'undefined')
 			{
-				console.log('HELLO!');
-			});
-			
-			// trigger progress event to server
-			live.ready(function()
-			{
-				this.trigger('status', {from:'client'});
-				live.subscribe('chat/1');
-			});
+				// listen for event progress
+				live.on('hello', function()
+				{
+					console.log('Hello from server!');
+				});
+				
+				live.on('group', function(name)
+				{
+					console.log('new group:', name);
+				});
+				
+				// trigger progress event to server
+				live.ready(function()
+				{
+					this.trigger('status', 'myStatus');
+					// subscribe to a new group
+					live.subscribe('someGroup');
+				});
+			}
 		</script>
 	</body>
 </html>
