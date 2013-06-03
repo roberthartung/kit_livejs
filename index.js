@@ -20,17 +20,8 @@ module.exports = function(httpServer)
 		// Emit directly on LiveJS object -> send event to everyone group
 		this.emit = function()
 		{
-			//console.log('live.emit('+arguments[0]+')');
-			//console.log('emit', arguments[0],typeof live._events[arguments[0]], live._events);
 			if(typeof live._events[arguments[0]] == 'undefined' && _reserved_events.indexOf(arguments[0]) == -1)
 			{
-				/*
-				function Event()
-				{
-					
-				}
-				new Event();
-				*/
 				console.log('LiveJS.emit('+arguments[0]+')');
 				return groups.everyone.emit.apply(live, arguments);
 			}
@@ -39,7 +30,6 @@ module.exports = function(httpServer)
 				var args = []; for(var a=1;a<arguments.length;a++) args[a-1] = arguments[a];
 				args.unshift(this);
 				args.unshift(arguments[0]);
-				console.log('args:', args);
 				return emit.apply(live, args);
 			}
 		}

@@ -10,7 +10,6 @@ var live = new function()
 	ws.onopen = function()
 	{
 		console.log('open');
-		ws.send(JSON.stringify('Hi'));
 		isReady = true;
 		for(var i=0;i<waitReady.length;i++)
 		{
@@ -37,7 +36,6 @@ var live = new function()
 		switch(json.type)
 		{
 			case 'event' :
-				//console.log('event.name:', json.name);
 				if(typeof events[json.name] == 'function')
 				{
 					events[json.name].apply(live, json.arguments);

@@ -10,12 +10,17 @@ function Client(connection, live)
 		client.put(JSON.stringify({type:'message',message:m}));
 	}
 	
-	//this.send('Welcome');
-	
 	this.put = function(str)
 	{
 		connection.send(str);
 	}
+	
+	/*
+	@todo implement handler for the group event and send a message of type 'group' to the client instead of the event.
+	this.on('group', function(){
+		
+	});
+	*/
 	
 	connection.on('data', function(data)
 	{

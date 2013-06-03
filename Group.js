@@ -1,21 +1,3 @@
-		/*
-		
-		Group.prototype.send = function(msg)
-		{
-			for(var c=0;c<this.clients.length;c++)
-			{
-				this.clients[c].send(msg);
-			}
-		}
-		
-		Group.prototype.trigger = function(e,d)
-		{
-			var json = JSON.stringify({type:'event',name:e,data:d});
-			this.send(json);
-		}
-		
-*/
-
 var events = require("events"),
 	util = require("util");
 
